@@ -7,10 +7,11 @@ const helmet = require('helmet');
 // installation Cors
 const cors = require('cors');
 // limiter les requêtes
-const rateLimit = require ('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 // import ORM ?
 // import path du serveur ?
-
+// import routeurs 
+const apiRouter = require('./apiRouter').router;
 // connextion avec la BDD ?
 
 // Propriété de rateLimit
@@ -50,6 +51,7 @@ app.use(express.json());
 // route utilisateurs avec auth
 // route gifs 
 // autre routes ?
+app.use('/api/', apiRouter);
 
 
 module.exports = app;

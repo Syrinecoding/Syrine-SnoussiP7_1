@@ -21,7 +21,7 @@ const port = normalizePort(process.env.PORT || '8080');
 app.set('port', port);
 // gestion des erreurs de port
 const errorHandler = error => {
-    if (error.syscall !== 'listent') {
+    if (error.syscall !== 'listen') {
         throw error;
     }
     const address = server.address();
