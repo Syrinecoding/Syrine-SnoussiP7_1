@@ -6,7 +6,7 @@ const models = require('../models');
 
 // Routes
 module.exports = {
-    register: function(req, res) {
+    signup: function(req, res) {
 
         // Params
         const email = req.body.email;
