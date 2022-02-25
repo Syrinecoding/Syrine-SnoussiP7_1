@@ -45,6 +45,7 @@ app.get('/', function (req, res) {
 
 // json.parse
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 // fichiers gifs
