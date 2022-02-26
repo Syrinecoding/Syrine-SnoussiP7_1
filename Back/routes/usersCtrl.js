@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt');
 const jwtUtils = require('../utils/jwt.utils')
 const models = require('../models');
+const asyncLib = require('async');
 // Verifier si dans model il faut indiquer id ?
 let emailRegex = new RegExp ('^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,15}$', 'g');
 let passwordRegex = new RegExp('/^[a-zA-Z]\w{3,14}$/');
@@ -33,36 +34,51 @@ module.exports = {
                 'error': "le mot de passe n'est pas valide (La première lettre doit être une lettre, entre 4 et 15 caractères, aucun caractère spécial) !"
             });
         }
-        
-        models.User.findOne({
-            attributes: ['email'],
-            where: { email: email}
-        })
-        .then(function(userFound) {
-            if (!userFound) {
-                bcrypt.hash(password, 5, function( err, bcryptPassword){
-                    const newUser = models.User.create({
-                        email: email,
-                        username: username,
-                        password: bcryptPassword,
-                        bio: bio,
-                        isAdmin: 0
-                    })
-                    .then(function(newUser){
-                        return res.status(201).json({
-                            'userId': newUser.id
-                        })
-                    })
-                    .catch(function(err){
-                        return res.status(500).json({ 'error': "Impossible d'ajouter l'utilisateur !"})
+        asyncLib.waterfall([
+            function(done) {
+                models.User.findOne({
+                    attributes: ['email'],
+                    where: { email: email}
+                })
+                .then(function(userFound) {
+                    done(null, userFound);
+                })
+                .catch(function(err){
+                    return res.status(500).json({'error': "impossible de vérifier l'utilisateur !"});
+                }); 
+            },  
+            function(userFound, done){
+                if (!userFound) {
+                    bcrypt.hash(password, 5, function( err, bcryptPassword){
+                        done(null, userFound, bcryptPassword);
                     });
+                } else {
+                    return res.status(409).json({ 'error': "Cet utilisateur est déjà inscrit !"});
+                }
+            },
+            function(userFound, bcryptPassword, done) {
+                const newUser = models.User.create({
+                    email: email,
+                    username: username,
+                    password: bcryptPassword,
+                    bio: bio,
+                    isAdmin: 0
+                })
+                .then(function(newUser){
+                    done(newUser);
+                })
+                .catch(function(err){
+                    return res.status(500).json({ 'error': "Impossible d'ajouter l'utilisateur !"})
+                });
+            }
+        ], function(newUser) {
+            if (newUser) {
+                return res.status(201).json({
+                    'userId': newUser.id
                 });
             } else {
-                return res.status(409).json({ 'error': "Cet utilisateur est déjà inscrit !"});
+                return res.status(500).json({'error': "Impossible d'ajouter cet utilisateur !"});
             }
-        })
-        .catch(function(err){
-            return res.status(500).json({'error': "impossible de vérifier l'utilisateur !"});
         }); 
     },
 
@@ -74,36 +90,43 @@ module.exports = {
         if(email == null || password == null) {
             return res.status(400).json({ 'error': 'paramètre manquant !' });
         }
-        if (!emailRegex.test(email)){
-            return res.status(400).json({
-                'error': "l'email n'est pas valide !"
-            });
-        }
-        if (password.length !== req.body.password.length) {
-            return res.status(400).json({ 'error': 'vérifier la saisie'});
-        }
-        models.User.findOne({
-            where: { email: email }
-        })
-        .then(function(userFound) {
-            if(userFound){
-                bcrypt.compare(password, userFound.password, function(errBycrypt, resByscrypt) {
-                    if(resByscrypt) {
-                        return res.status(200).json({
-                            'userId': userFound.id,
-                            'token': jwtUtils.generateToken(userFound)
-                        });
-                    } else {
-                        return res.status(403).json({"error": "mot de passe invalide !"});
-                    }
+        asyncLib.waterfall([
+            function(done) {
+                models.User.findOne({
+                    where: { email: email }
+                })
+                .then(function(userFound){
+                    done(null, userFound);
+                })
+                .catch(function(err){
+                    return res.status(500).json({ 'error': 'Impossible de vérifier cet utilisateur !'});
                 });
-
-            }else{
-                return res.status(404).json({ 'error': "Cet utilisateur n'existe pas dans la base !" });
+            },
+            function(userFound, done) {
+                if (userFound){
+                    bcrypt.compare(password, userFound.password, function(errBcrypt, resBcrypt){
+                        done(null, userFound, resBcrypt);
+                    });
+                } else {
+                    return res.status(404).json({'error': "Cet utilisateur n'existe pas dans la base !"});
+                }  
+            },
+            function(userFound, resBcrypt, done) {
+                if(resBcrypt) {
+                    done(userFound);
+                } else {
+                    return res.status(403).json({"error": "mot de passe invalide !"});
+                }
             }
-        })
-        .catch(function(err) {
-            return res.status(500).json({ 'error': 'unable to verify user' });
+        ], function(userFound) {
+            if (userFound) {
+                return res.status(201).json({
+                    'userId': userFound.id,
+                    'token': jwtUtils.generateToken(userFound)
+                });         
+            } else {
+                return res.status(500).json({ 'error': "Impossible de connnecter l'utilisateur !" });
+            }
         });
     }
 }
