@@ -9,13 +9,12 @@ let passwordRegex = new RegExp('/^[a-zA-Z]\w{3,14}$/');
 // Routes
 module.exports = {
     signup: function(req, res) {
-
         // Params
         const email = req.body.email;
         const username = req.body.username;
         const password = req.body.password;
         const bio = req.body.bio;
-        // verifications (TODO : les regex à verifier !)
+        // verifications (TODO : les regex à verifier ? ou utiliser express validator ?)
         if (email == null || username == null || password == null) {
             return res.status(400).json({'error': 'Paramètres manquants !'});
         }
@@ -49,7 +48,7 @@ module.exports = {
             },  
             function(userFound, done){
                 if (!userFound) {
-                    bcrypt.hash(password, 5, function( err, bcryptPassword){
+                    bcrypt.hash(password, 5, function(err, bcryptPassword){
                         done(null, userFound, bcryptPassword);
                     });
                 } else {
@@ -126,6 +125,67 @@ module.exports = {
                 });         
             } else {
                 return res.status(500).json({ 'error': "Impossible de connnecter l'utilisateur !" });
+            }
+        });
+    },
+    getUserProfile: function(req, res) {
+        // recup entête auth
+        const autHeader = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(autHeader);
+
+        if (userId < 0)
+        return res.status(400).json({'error': 'mauvais token !'});
+
+        models.User.findOne({
+            attributes: ['id', 'email', 'username', 'bio' ],
+            where: { id: userId}
+        }).then(function(user){
+            if(user) {
+                res.status(201).json(user);
+            } else {
+                res.status(404).json({'error': 'Utilisateur introuvable !'});
+            }
+        }).catch(function(err) {
+            res.status(500).json({'error': "impossible de trouver l'utilisateur !"});
+        });
+    },
+    updateUserProfile: function(req, res) {
+        //Récupéer les requêtes d'autorisation
+        const autHeader = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(autHeader);
+
+        // params
+        const bio = req.body.bio;
+
+        asyncLib.waterfall([
+            function(done) {
+                models.User.findOne({
+                    attributes: ['id', 'bio'],
+                    where: { id: userId }
+                }).then(function(userFound) {
+                    done(null, userFound);
+                }).catch(function(err) {
+                    return res.status(500).json({ 'error': "Impossible de vérifier l'utilisateur !" });
+                });
+            },
+            function(userFound, done) {
+                if(userFound) {
+                    userFound.update({
+                        bio: (bio ? bio : userFound.bio)
+                    }).then(function() {
+                        done(userFound);
+                    }).catch(function(err) {
+                        res.status(500).json({ 'error': "Impossible de mettre à jour l'utilisateur !" });
+                    });
+                } else {
+                    res.status(404).json({ 'error': 'Utilisateur introuvable !'});
+                }
+            },
+        ], function(userFound) {
+            if (userFound) {
+                return res.status(201).json(userFound);
+            } else {
+                return res.status(500).json({ 'error' : "Impossible de mettre à jour le profil Utilisateur !"})
             }
         });
     }
