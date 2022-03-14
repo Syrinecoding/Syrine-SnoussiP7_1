@@ -1,6 +1,6 @@
 // imports
 const bcrypt = require('bcrypt');
-const jwtUtils = require('../utils/jwt.utils')
+const jwtUtils = require('../utils/jwt.utils');
 const models = require('../models');
 const asyncLib = require('async');
 // Verifier si dans model il faut indiquer id ?
@@ -18,21 +18,21 @@ module.exports = {
         if (email == null || username == null || password == null) {
             return res.status(400).json({'error': 'Paramètres manquants !'});
         }
-        if (username.length >= 16 || username <= 4) {
+        if (username.length >= 16 || username.length <= 4) {
             return res.status(400).json({
                 'error': "mauvais nom d'utilisateur (le nombre de caractères doit être compris entre 3 et 15"
             })
         }
-        if (!emailRegex.test(email)){
-            return res.status(400).json({
-                'error': "l'email n'est pas valide !"
-            });
-        }
-        if (!passwordRegex.test(password)){
-            return res.status(400).json({
-                'error': "le mot de passe n'est pas valide (La première lettre doit être une lettre, entre 4 et 15 caractères, aucun caractère spécial) !"
-            });
-        }
+        // if (!emailRegex.test(email)){
+        //     return res.status(400).json({
+        //         'error': "l'email n'est pas valide !"
+        //     });
+        // }
+        // if (!passwordRegex.test(password)){
+        //     return res.status(400).json({
+        //         'error': "le mot de passe n'est pas valide (La première lettre doit être une lettre, entre 4 et 15 caractères, aucun caractère spécial) !"
+        //     });
+        // }
         asyncLib.waterfall([
             function(done) {
                 models.User.findOne({
@@ -154,7 +154,7 @@ module.exports = {
         const autHeader = req.headers['authorization'];
         const userId = jwtUtils.getUserId(autHeader);
 
-        // params
+        // params (TODO à compléter)
         const bio = req.body.bio;
 
         asyncLib.waterfall([
@@ -170,12 +170,18 @@ module.exports = {
             },
             function(userFound, done) {
                 if(userFound) {
+                    console.log(userFound);
+                    console.log(bio);
                     userFound.update({
                         bio: (bio ? bio : userFound.bio)
+                    }, {
+                        where: {
+                            id: userFound.id,
+                        }
                     }).then(function() {
                         done(userFound);
                     }).catch(function(err) {
-                        res.status(500).json({ 'error': "Impossible de mettre à jour l'utilisateur !" });
+                        res.status(500).json({ 'error': "Impossible de mettre à jour l'utilisateur !", message : err });
                     });
                 } else {
                     res.status(404).json({ 'error': 'Utilisateur introuvable !'});
