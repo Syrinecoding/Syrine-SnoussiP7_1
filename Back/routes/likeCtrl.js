@@ -2,6 +2,8 @@ const models = require('../models');
 const jwtUtils = require('../utils/jwt.utils');
 const asyncLib = require('async');
 
+const DISLIKED = 0;
+const LIKED = 1;
 
 // routes
 module.exports = {
@@ -53,7 +55,7 @@ module.exports = {
                         done(null, messageFound, userFound, hasUserAlreadyLiked);
                     })
                     .catch(function(err) {
-                        return res.status(500).json({ 'error': "impossible de vérifier si l'utilisateur a déjà liké !" })
+                        return res.status(500).json({ 'error': "impossible de vérifier si l'utilisateur a déjà liké !" });
                     });
                 } else {
                     res.status(404).json({ 'error': "l'utilisateur n'existe pas ! "});
@@ -61,15 +63,25 @@ module.exports = {
             },
             function(messageFound, userFound, hasUserAlreadyLiked, done) {
                 if(!hasUserAlreadyLiked) {
-                    messageFound.addUser(userFound)
+                    messageFound.addUser(userFound, { hasLiked: LIKED })
                     .then(function(alreadyLiked) {
                         done(null, messageFound, userFound); // + hasUserAlreadyLiked ?
                     })
                     .catch(function(err) {
                         return res.status(500).json({ 'error': "impossible d'indiquer la réaction de l'utilisateur !" });
-                    })
+                    });
                 } else {
-                    res.status(409).json({ 'error': 'message déjà liké !'});
+                    if (hasUserAlreadyLiked.hasLiked === DISLIKED) {
+                        hasUserAlreadyLiked.update({
+                            hasLiked: LIKED,
+                        }).then(function() {
+                            done(null, messageFound, userFound);
+                        }).catch(function(err) {
+                            res.status(500).json({ 'error': "impossible de mettre à jour la réaction de l'utilisateur ! " });
+                        });
+                    } else if (hasUserAlreadyLiked === LIKED) {
+                        res.status(409).json({ 'error': 'message déjà liké !'});
+                    }                   
                 }
             },
             function(messageFound, userFound, done) {
@@ -85,7 +97,7 @@ module.exports = {
             if(messageFound) {
                 return res.status(201).json(messageFound);
             } else {
-                return res.status(500).json({ 'error': 'impossible de mettre à jour le message !'})
+                return res.status(500).json({ 'error': 'impossible de mettre à jour le message !'});
             }
 
         });
@@ -146,16 +158,26 @@ module.exports = {
                 }
             },
             function(messageFound, userFound, hasUserAlreadyLiked, done) {
-                if(hasUserAlreadyLiked) {
-                    hasUserAlreadyLiked.destroy()
-                    .then(function() {
+                if(hasUserAlreadyLiked === DISLIKED) {
+                    messageFound.addUser(userFound, { hasLiked: DISLIKED })
+                    .then(function(alreadyLiked) {
                         done(null, messageFound, userFound);
                     })
                     .catch(function(err) {
                         return res.status(500).json({ 'error': "impossible de supprimer le like ! "});
                     });
                 } else {
-                    done(null, messageFound, userFound)
+                    if(hasUserAlreadyLiked.hasLiked === LIKED) {
+                        hasUserAlreadyLiked.update({
+                            hasLiked: DISLIKED,
+                        }).then(function() {
+                            done(null, messageFound, userFound);
+                        }).catch(function(err) {
+                            res.status(500).json({ 'error': "Impossible de mettre à jour la réaction de l'utilisateur !" });
+                        });
+                    } else {
+                        res.status(409).json({ 'error': 'message déjà liké !' });
+                    }
                 }
             },
             function(messageFound, userFound, done) {
