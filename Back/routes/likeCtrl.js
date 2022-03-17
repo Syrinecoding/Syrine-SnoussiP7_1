@@ -79,7 +79,7 @@ module.exports = {
                         }).catch(function(err) {
                             res.status(500).json({ 'error': "impossible de mettre à jour la réaction de l'utilisateur ! " });
                         });
-                    } else if (hasUserAlreadyLiked === LIKED) {
+                    } else {
                         res.status(409).json({ 'error': 'message déjà liké !'});
                     }                   
                 }
@@ -158,7 +158,7 @@ module.exports = {
                 }
             },
             function(messageFound, userFound, hasUserAlreadyLiked, done) {
-                if(hasUserAlreadyLiked === DISLIKED) {
+                if(!hasUserAlreadyLiked) {
                     messageFound.addUser(userFound, { hasLiked: DISLIKED })
                     .then(function(alreadyLiked) {
                         done(null, messageFound, userFound);
@@ -176,7 +176,7 @@ module.exports = {
                             res.status(500).json({ 'error': "Impossible de mettre à jour la réaction de l'utilisateur !" });
                         });
                     } else {
-                        res.status(409).json({ 'error': 'message déjà liké !' });
+                        res.status(409).json({ 'error': 'message déjà mis à jour !' });
                     }
                 }
             },
