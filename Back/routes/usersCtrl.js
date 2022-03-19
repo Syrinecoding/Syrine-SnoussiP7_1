@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const jwtUtils = require('../utils/jwt.utils');
 const models = require('../models');
 const asyncLib = require('async');
+
+
 // Verifier si dans model il faut indiquer id ?
 let emailRegex = new RegExp ('^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,15}$', 'g');
 let passwordRegex = new RegExp('/^[a-zA-Z]\w{3,14}$/');

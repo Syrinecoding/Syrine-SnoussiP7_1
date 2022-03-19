@@ -3,6 +3,8 @@ const usersCtrl = require('./routes/usersCtrl');
 const messageCtrl = require('./routes/messagesCtrl');
 const likeCtrl = require('./routes/likeCtrl');
 
+const multer = require('./utils/multer-config.js');
+
 exports.router = (function() {
     const apiRouter = express.Router();
     // Routes Users
@@ -11,7 +13,7 @@ exports.router = (function() {
     apiRouter.route('/users/profile/').get(usersCtrl.getUserProfile);
     apiRouter.route('/users/profile/').put(usersCtrl.updateUserProfile);
     // Routes Messages
-    apiRouter.route('/messages/new/').post(messageCtrl.createMessage);
+    apiRouter.route('/messages/new/').post(multer, messageCtrl.createMessage);
     apiRouter.route('/messages/').get(messageCtrl.listMessages);
     // Route Likes
     apiRouter.route('/messages/:messageId/vote/like').post(likeCtrl.likePost);

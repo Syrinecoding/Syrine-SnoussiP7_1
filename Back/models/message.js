@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     
     title: DataTypes.STRING,
     content: DataTypes.STRING,
-    gifsAttached: DataTypes.STRING,
+    gifsAttached: DataTypes.STRING, // faut-il que cela ait le meme nom que le name dans le front ?
     likes: DataTypes.INTEGER
   }, {
     sequelize,

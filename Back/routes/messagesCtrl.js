@@ -2,9 +2,11 @@
 const models = require('../models');
 const asyncLib = require('async');
 const jwtUtils = require('../utils/jwt.utils');
+const fs = require('fs');
 
 const titleMin = 2;
 const contentMin = 4;
+
 // Routes
 module.exports = {
     createMessage: function(req, res) {
@@ -15,6 +17,7 @@ module.exports = {
         // paramètres
         const title = req.body.title;
         const content = req.body.content;
+        //const imageObject = JSON.parse(req.body.image); 
 
         if(title == null || content == null) {
             return res.status(400).json({ 'error': 'Paramètre manquant !' });
@@ -40,6 +43,7 @@ module.exports = {
                     models.Message.create({
                         title : title,
                         content : content,
+                        gifsAttached : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
                         likes : 0,
                         UserId : userFound.id
                     })
