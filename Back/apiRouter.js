@@ -15,6 +15,8 @@ exports.router = (function() {
     // Routes Messages
     apiRouter.route('/messages/new/').post(multer, messageCtrl.createMessage);
     apiRouter.route('/messages/').get(messageCtrl.listMessages);
+    apiRouter.route('/messages/:messageId/').get(messageCtrl.findMessageById);
+    //apiRouter.route('/messages/:messageId/update/').put(messageCtrl.updateMessage);
     // Route Likes
     apiRouter.route('/messages/:messageId/vote/like').post(likeCtrl.likePost);
     apiRouter.route('/messages/:messageId/vote/dislike').post(likeCtrl.dislikePost);

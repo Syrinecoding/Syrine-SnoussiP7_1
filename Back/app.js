@@ -48,10 +48,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-// fichiers gifs
-// route utilisateurs avec auth
-// route gifs 
-// autre routes ?
 app.use('/api/', apiRouter);
 
 

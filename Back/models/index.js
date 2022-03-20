@@ -35,9 +35,9 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 // conserver les data à chaque connection
-/*db.sequelize.sync({ force: false })
+db.sequelize.sync({ force: false })
 .then(() => {
   console.log('re-sync effectuée !')
-})*/
+})
 
 module.exports = db;

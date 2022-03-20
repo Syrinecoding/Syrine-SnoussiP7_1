@@ -3,6 +3,8 @@ const models = require('../models');
 const asyncLib = require('async');
 const jwtUtils = require('../utils/jwt.utils');
 const fs = require('fs');
+const { title } = require('process');
+const { measureMemory } = require('vm');
 
 const titleMin = 2;
 const contentMin = 4;
@@ -17,7 +19,7 @@ module.exports = {
         // paramètres
         const title = req.body.title;
         const content = req.body.content;
-        //const imageObject = JSON.parse(req.body.image); 
+        
 
         if(title == null || content == null) {
             return res.status(400).json({ 'error': 'Paramètre manquant !' });
@@ -43,6 +45,7 @@ module.exports = {
                     models.Message.create({
                         title : title,
                         content : content,
+                        //gifsAttached : null,
                         gifsAttached : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
                         likes : 0,
                         UserId : userFound.id
@@ -87,5 +90,25 @@ module.exports = {
             console.log(err);
             res.status(500).json({ 'error': "Champs invalides !"});
         });
-    }
+    },
+    findMessageById: function (req, res) {
+        //params
+        const messageId = parseInt(req.params.messageId);
+
+        models.Message.findOne({
+            where: { id: messageId }
+        })
+        .then(function(messageFound){
+            if (messageFound) {
+                res.status(200).json(messageFound);
+            } else (
+                res.status(404).json({'error': 'message introuvable !'})
+            )
+        })
+        .catch(function(err) {
+            res.status(500).json({'error': 'champs non valides !'});
+        });
+    },
+    
+    
 }
