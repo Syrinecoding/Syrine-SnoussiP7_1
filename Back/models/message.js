@@ -15,7 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: {
           allowNull: false
         }
-      })
+      }),
+      models.Message.hasMany(models.Comment, {
+        onDelete: "cascade",
+      });
     }
   }
   Message.init({
