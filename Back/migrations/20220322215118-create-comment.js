@@ -9,6 +9,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       commentText: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       createdAt: {
@@ -18,6 +19,15 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      messageId: {
+        type: Sequelize.INTEGER,
+        onDelete: 'cascade',
+        references: {
+          model: 'Messages',
+          key: 'id',
+          as: 'messageId'
+        }
       }
     });
   },

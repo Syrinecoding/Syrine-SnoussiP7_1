@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      models.Comment.belongsTo(models.Message, {
+        foreignKey: 'messageId',
+        onDelete: 'cascade'
+      })
     }
   }
   Comment.init({

@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       models.User.hasMany(models.Message, {
         onDelete: "cascade",
       }),
-
+      // TO DO passer l'utilisateur en anonyme
       models.User.hasMany(models.Comment, {
         onDelete: "cascade",
       });

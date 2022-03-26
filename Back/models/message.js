@@ -17,15 +17,16 @@ module.exports = (sequelize, DataTypes) => {
         }
       }),
       models.Message.hasMany(models.Comment, {
+        foreignKey: "messageId",
         onDelete: "cascade",
       });
     }
+    
   }
   Message.init({
-    
     title: DataTypes.STRING,
     content: DataTypes.STRING,
-    gifsAttached: DataTypes.STRING, // faut-il que cela ait le meme nom que le name dans le front ?
+    attachment: DataTypes.STRING,
     likes: DataTypes.INTEGER
   }, {
     sequelize,

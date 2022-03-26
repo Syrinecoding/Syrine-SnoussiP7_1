@@ -45,8 +45,9 @@ module.exports = {
                     models.Message.create({
                         title : title,
                         content : content,
-                        //gifsAttached : null,
-                        gifsAttached : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+                        //attachment : null,
+                        // TODO ternaire
+                        attachment : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
                         likes : 0,
                         UserId : userFound.id
                     })

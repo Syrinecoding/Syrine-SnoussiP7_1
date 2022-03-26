@@ -24,8 +24,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      // pour une appli de gif faut-il mettre true 
-      gifsAttached: {
+      attachment: {
         allowNull: true,
         type: Sequelize.STRING
       },
